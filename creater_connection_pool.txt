@@ -1,0 +1,2 @@
+create-jdbc-connection-pool --datasourceclassname com.mysql.jdbc.jdbc2.optional.MysqlDataSource --restype javax.sql.DataSource --property portNumber=3306:password=ktvr17webshop:user=ktvr17webshop:serverName=localhost:databaseName=ktvr17webshop:useUnicode=true:characterEncoding=utf8 ktvr17webshopPool
+ create-jdbc-resource –-connectionpoolid ktvr17webshopPool jdbc/ktvr17webshopDS
