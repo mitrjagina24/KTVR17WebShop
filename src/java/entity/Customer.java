@@ -25,56 +25,95 @@ public class Customer implements Serializable  {
     @Column(unique = true)
     private String name;
     private String surname;
-    private Integer money;
+    private int money;
+    @Column(unique = true)
+    private String login;
+    private String password;
+    private String salts;
 
-    public Customer() {
+   public Customer() {
     }
 
-    public Customer(String name, String surname, Integer money) {
+    public Customer(String name, String surname, int money, String login, String password, String salts) {
         this.name = name;
         this.surname = surname;
         this.money = money;
+        this.login = login;
+        this.password = password;
+        this.salts = salts;
     }
+
+
+
 
     public Long getId() {
         return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getSurname() {
-        return surname;
-    }
-
-    public Integer getMoney() {
-        return money;
     }
 
     public void setId(Long id) {
         this.id = id;
     }
 
+    public String getName() {
+        return name;
+    }
+
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getSurname() {
+        return surname;
     }
 
     public void setSurname(String surname) {
         this.surname = surname;
     }
 
-    public void setMoney(Integer money) {
+    public int getMoney() {
+        return money;
+    }
+
+    public void setMoney(int money) {
         this.money = money;
+    }
+
+
+
+    public String getLogin() {
+        return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getSalts() {
+        return salts;
+    }
+
+    public void setSalts(String salts) {
+        this.salts = salts;
     }
 
     @Override
     public int hashCode() {
         int hash = 3;
-        hash = 29 * hash + Objects.hashCode(this.id);
-        hash = 29 * hash + Objects.hashCode(this.name);
-        hash = 29 * hash + Objects.hashCode(this.surname);
-        hash = 29 * hash + Objects.hashCode(this.money);
+        hash = 89 * hash + Objects.hashCode(this.id);
+        hash = 89 * hash + Objects.hashCode(this.name);
+        hash = 89 * hash + Objects.hashCode(this.surname);
+        hash = 89 * hash + Objects.hashCode(this.money);
+        hash = 89 * hash + Objects.hashCode(this.login);
+        hash = 89 * hash + Objects.hashCode(this.password);
+        hash = 89 * hash + Objects.hashCode(this.salts);
         return hash;
     }
 
@@ -96,10 +135,19 @@ public class Customer implements Serializable  {
         if (!Objects.equals(this.surname, other.surname)) {
             return false;
         }
-        if (!Objects.equals(this.id, other.id)) {
+        if (!Objects.equals(this.money, other.money)) {
             return false;
         }
-        if (!Objects.equals(this.money, other.money)) {
+        if (!Objects.equals(this.login, other.login)) {
+            return false;
+        }
+        if (!Objects.equals(this.password, other.password)) {
+            return false;
+        }
+        if (!Objects.equals(this.salts, other.salts)) {
+            return false;
+        }
+        if (!Objects.equals(this.id, other.id)) {
             return false;
         }
         return true;
@@ -107,8 +155,8 @@ public class Customer implements Serializable  {
 
     @Override
     public String toString() {
-        return "Customer{" + "id=" + id + ", name=" + name + ", surname=" + surname + ", money=" + money + '}';
+        return "Customer{" + "id=" + id + ", name=" + name + ", surname=" + surname + ", money=" + money + ", login=" + login + ", password=" + password + ", salts=" + salts + '}';
     }
 
-
+ 
 }

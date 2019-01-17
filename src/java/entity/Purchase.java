@@ -5,6 +5,7 @@
  */
 package entity;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
 import javax.persistence.CascadeType;
@@ -37,50 +38,51 @@ public class Purchase {
     public Purchase() {
     }
 
-    public Purchase(Long id, Product product, Customer customer, Date productIssued, Integer quantity) {
-        this.id = id;
+    public Purchase(Product product, Customer customer, Date date, Integer quantity) {
         this.product = product;
         this.customer = customer;
         this.date = date;
         this.quantity = quantity;
     }
- public Purchase(Product product, Customer customer, Date time, Object object) {
-     
+
+    public Purchase(Product product, Customer customer, Date time, Object object, String quantity) {
+        
     }
+
     public Long getId() {
         return id;
-    }
-
-    public Product getProduct() {
-        return product;
-    }
-
-    public Customer getCustomer() {
-        return customer;
-    }
-
-   public Date getDate() {
-        return date;
-    }
-
-    public Integer getQuantity() {
-        return quantity;
     }
 
     public void setId(Long id) {
         this.id = id;
     }
 
+    public Product getProduct() {
+        return product;
+    }
+
     public void setProduct(Product product) {
         this.product = product;
+    }
+
+    public Customer getCustomer() {
+        return customer;
     }
 
     public void setCustomer(Customer customer) {
         this.customer = customer;
     }
 
+    public Date getDate() {
+        return date;
+    }
+
     public void setDate(Date date) {
         this.date = date;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
     }
 
     public void setQuantity(Integer quantity) {
@@ -89,16 +91,14 @@ public class Purchase {
 
     @Override
     public int hashCode() {
-        int hash = 5;
-        hash = 67 * hash + Objects.hashCode(this.id);
-        hash = 67 * hash + Objects.hashCode(this.product);
-        hash = 67 * hash + Objects.hashCode(this.customer);
-        hash = 67 * hash + Objects.hashCode(this.date);
-        hash = 67 * hash + Objects.hashCode(this.quantity);
+        int hash = 7;
+        hash = 47 * hash + Objects.hashCode(this.id);
+        hash = 47 * hash + Objects.hashCode(this.product);
+        hash = 47 * hash + Objects.hashCode(this.customer);
+        hash = 47 * hash + Objects.hashCode(this.date);
+        hash = 47 * hash + Objects.hashCode(this.quantity);
         return hash;
     }
-
-    
 
     @Override
     public boolean equals(Object obj) {
@@ -121,7 +121,7 @@ public class Purchase {
         if (!Objects.equals(this.customer, other.customer)) {
             return false;
         }
-         if (!Objects.equals(this.date, other.date)) {
+        if (!Objects.equals(this.date, other.date)) {
             return false;
         }
         if (!Objects.equals(this.quantity, other.quantity)) {
@@ -132,9 +132,8 @@ public class Purchase {
 
     @Override
     public String toString() {
-        return "Purchase{" + "id=" + id + ", product=" + product + ", customer=" + customer + ", date=" + date + ", quantity=" + quantity + '}';
+        return "Purchase{" + "id=" + id + ", product=" + product.getName() + ", customer=" + customer.getName()+" "+ customer.getSurname() + ", date=" + date.toString() + ", quantity=" + quantity + '}';
     }
 
-    
+   }
 
-}

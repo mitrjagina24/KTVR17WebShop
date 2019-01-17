@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 import session.ProductFacade;
 import session.CustomerFacade;
 import session.PurchaseFacade;
+import util.EncriptPass;
 import util.PageReturner;
 
 /**
@@ -37,7 +38,7 @@ import util.PageReturner;
     "/listAll",
     "/buyProduct",
     "/showBuyProduct",
-    "/listBuyProducts",
+    "/listBuyProduct",
     "/deleteProduct",
 
     
@@ -86,8 +87,18 @@ public class Shop extends HttpServlet {
                     name = request.getParameter("name");
                     String surname = request.getParameter("surname");
                     String money = request.getParameter("money");
-
-                    Customer customer = new Customer(name, surname, new Integer(money));
+                    String login = request.getParameter("login");
+                    String password1 = request.getParameter("password1");
+                    String password2 = request.getParameter("password2");
+                    if (!password1.equals(password2)) {
+                        request.setAttribute("info", "Неправильный логин или пароль");
+                        request.getRequestDispatcher(PageReturner.getPage("welcome")).forward(request, response);
+                        break;
+                    }
+                    EncriptPass ep = new EncriptPass();
+                    String salts = ep.createSalts();
+                    String encriptPass = ep.setEncriptPass(password1, salts);
+                    Customer customer = new Customer(name, surname,new Integer(money), login, encriptPass, salts);
 
                     customerFacade.create(customer);
                     request.setAttribute("customer", customer);
@@ -111,7 +122,7 @@ public class Shop extends HttpServlet {
                     case "/purchase":{
                    request.setAttribute("listProducts", productFacade.findAll());
                    request.setAttribute("listCustomers", customerFacade.findAll());
-                   request.getRequestDispatcher(PageReturner.getPage("ListBuyProducts")).forward(request, response);
+                   request.getRequestDispatcher(PageReturner.getPage("listBuyProduct")).forward(request, response);
                    break;
                }
                 case "/showBuyProduct": {
@@ -121,36 +132,44 @@ public class Shop extends HttpServlet {
                     break;
                 }
                 case "/buyProduct":{
-                           String selectedProduct = request.getParameter("selectedProduct");
-                           String selectedCustomer = request.getParameter("selectedCustomer");
-                         product = productFacade.find(new Long(selectedProduct));
-                           Customer customer = customerFacade.find(new Long(selectedCustomer));
-                           Calendar c = new GregorianCalendar();
-                           Purchase purchase;
-                           if(product.getCount()>0){
-                               product.setCount(product.getCount()-1);
-                               productFacade.edit(product);
-                               purchase = new Purchase(product, customer, c.getTime(), null);
-                               purchaseFacade.create(purchase);
-                           }else{
-                               request.setAttribute("info", "данного продукта нет на складе");
-                           }
-                           List<Purchase> buyProducts = purchaseFacade.findBuyProduct(product);
-                           request.setAttribute("buyProducts", buyProducts);
-                           request.getRequestDispatcher(PageReturner.getPage("listBuyProducts")).forward(request, response);
-                               break;
-                           }
-                
-                case "/deleteProduct": {
-                    String deleteProductId = request.getParameter("deleteProductId");
-                    Product products = productFacade.find(new Long(deleteProductId));
+                   String selectedProduct = request.getParameter("selectedProduct");
+                   String selectedCustomer = request.getParameter("selectedCustomer");
+                   String quantity = request.getParameter("quantity");
+                   product = productFacade.find(new Long(selectedProduct));
+                   Customer customer = customerFacade.find(new Long(selectedCustomer));
+                   
+                   Calendar c = new GregorianCalendar();
+                           
+//                  Если      количество продукта  минус quantity больше 0  то проверяем кол-во денег у пользователя 
+//                  Если кол-во денег у пользователя больше чем кол-во пользователя минус quantity * продукт price больше или равно 0 то попроизводим прокупку и списание 
                     
-                    productFacade.edit(products);
-                    List<Product> listProducts = productFacade.findAll();
-                    request.setAttribute("listProducts", listProducts);
-                    request.getRequestDispatcher(PageReturner.getPage("listProduct")).forward(request, response);
-                    break;
+                    if ((customer.getMoney() - (new Integer(quantity) * product.getPrice())) >= 0) {
+                        if(product.getCount()-new Integer(quantity)>=0){
+                            product.setCount(product.getCount() - new Integer(quantity));
+                            customer.setMoney(customer.getMoney() - new Integer(quantity)*product.getPrice());
+                            Purchase purchase = new Purchase (product, customer, c.getTime(), new Integer(quantity));
+                            purchaseFacade.create(purchase);
+                             List<Purchase> buyProducts = purchaseFacade.findAll();
+                             request.setAttribute("buyProducts", buyProducts);
+                             request.getRequestDispatcher("/listBuyProduct.jsp").forward(request, response);
+                             break;
+                        }else {
+                            List<Purchase> buyProducts = purchaseFacade.findAll();
+                            request.setAttribute("buyProducts", buyProducts);
+                            request.setAttribute("info", "Не хватает товара!");
+                            request.getRequestDispatcher("/listBuyProduct.jsp").forward(request, response); 
+                            break;
+                        }
+                    } else {
+                        List<Purchase> buyProducts = purchaseFacade.findAll();
+                      request.setAttribute("buyProducts", buyProducts);
+                      request.setAttribute("info", "Не хватает денег!");
+                      request.getRequestDispatcher("/listBuyProduct.jsp").forward(request, response); 
+                      break;
+                    }      
                 }
+                
+
                 default:
                     request.getRequestDispatcher(PageReturner.getPage("welcome")).forward(request, response);
                     break;
@@ -164,10 +183,7 @@ public class Shop extends HttpServlet {
         processRequest(request, response);
     }
 
-    @Override
-        public void init() throws ServletException {
-        getServletContext().setAttribute("customer", customerFacade.findAll());
-    }
+ 
 
 
 

@@ -5,19 +5,17 @@
  */
 package session;
 
-import entity.Product;
-import entity.Purchase;
-import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import secure.Role;
 
 /**
  *
- * @author pupil
+ * @author Anastasia
  */
 @Stateless
-public class PurchaseFacade extends AbstractFacade<Purchase> {
+public class RoleFacade extends AbstractFacade<Role> {
 
     @PersistenceContext(unitName = "KTVR17WebShopPU")
     private EntityManager em;
@@ -27,22 +25,12 @@ public class PurchaseFacade extends AbstractFacade<Purchase> {
         return em;
     }
 
-    public PurchaseFacade() {
-        super(Purchase.class);
+    public RoleFacade() {
+        super(Role.class);
     }
-    public List<Purchase> findBuyProducts(Product product) {
-        Object purchase = null;
-       return em.createQuery("SELECT s FROM Purchase s WHERE s.product =:product")
-               .setParameter("product", product)
-               .getResultList();
-    }
-
-    
-
-
-
-
-
-
-    
+     public Role findRoleByName(String name) {
+        return (Role)em.createQuery("SELECT r FROM Role r WHERE r.name=:name")
+        .setParameter("name",name)
+        .getSingleResult();
+     }
 }
