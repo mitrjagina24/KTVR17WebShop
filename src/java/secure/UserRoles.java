@@ -5,6 +5,7 @@
  */
 package secure;
 import entity.Customer;
+import entity.User;
 import java.util.Objects;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -22,16 +23,16 @@ public class UserRoles {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @OneToOne
-    private Customer customer;
+    private User user;
     @OneToOne
     private Role role;
 
     public UserRoles() {
     }
 
-    public UserRoles(Customer customer, Role role) {
+    public UserRoles(User user, Role role) {
 
-        this.customer = customer;
+        this.user = user;
         this.role = role;
     }
 
@@ -46,12 +47,12 @@ public class UserRoles {
         this.id = id;
     }
 
-    public Customer getCustomer() {
-        return customer;
+    public User getUser() {
+        return user;
     }
 
-    public void setCustomer(Customer customer) {
-        this.customer = customer;
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public Role getRole() {
@@ -66,7 +67,7 @@ public class UserRoles {
     public int hashCode() {
         int hash = 5;
         hash = 89 * hash + Objects.hashCode(this.id);
-        hash = 89 * hash + Objects.hashCode(this.customer);
+        hash = 89 * hash + Objects.hashCode(this.user);
         hash = 89 * hash + Objects.hashCode(this.role);
         return hash;
     }
@@ -86,7 +87,7 @@ public class UserRoles {
         if (!Objects.equals(this.id, other.id)) {
             return false;
         }
-        if (!Objects.equals(this.customer, other.customer)) {
+        if (!Objects.equals(this.user, other.user)) {
             return false;
         }
         if (!Objects.equals(this.role, other.role)) {
@@ -97,7 +98,7 @@ public class UserRoles {
 
     @Override
     public String toString() {
-        return "UserRoles{" + "id=" + id + ", customer=" + customer.getLogin() + ", role=" + role.getName() + '}';
+        return "UserRoles{" + "id=" + id + ", user=" + user.getLogin() + ", role=" + role.getName() + '}';
     }
    
 }

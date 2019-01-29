@@ -1,11 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package secure;
 
 import entity.Customer;
+import entity.User;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -20,51 +16,50 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import session.CustomerFacade;
 import session.RoleFacade;
+import session.UserFacade;
 import session.UserRolesFacade;
 import util.EncriptPass;
 import util.PageReturner;
 
-/**
- *
- * @author Anastasia
- */
-@WebServlet(loadOnStartup = 1,name = "Secure", urlPatterns = {
-   
+@WebServlet(loadOnStartup = 1, name = "Secure", urlPatterns = {
+    "/showLogin",
     "/login",
     "/logout",
-    "/showLogin",
     "/editUserRoles",
     "/addUserRole",
     "/changeUserRole"})
-public class secure extends HttpServlet {
-    
+public class Secure extends HttpServlet {
+
     @EJB
     RoleFacade roleFacade;
     @EJB
     CustomerFacade customerFacade;
     @EJB
     UserRolesFacade userRolesFacade;
+    @EJB
+    UserFacade userFacade;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
-       List<Customer> listCustomer = null;
-           listCustomer = customerFacade.findAll(); 
+        List<Customer> listCustomer = customerFacade.findAll();
         if (listCustomer.isEmpty()) {
             EncriptPass ep = new EncriptPass();
             String salts = ep.createSalts();
             String encriptPass = ep.setEncriptPass("admin", salts);
-            Customer customer = new Customer("Anastassia", "Mitrjagina", 0, "admin", encriptPass, salts);
+            Customer customer = new Customer("Nikolai", "Nikolaevich", 300);
             customerFacade.create(customer);
+            User user = new User("admin", encriptPass, salts, customer);
+            userFacade.create(user);
             Role role = new Role();
             role.setName("ADMIN");
             roleFacade.create(role);
             UserRoles ur = new UserRoles();
-            ur.setCustomer(customer);
+            ur.setUser(user);
             ur.setRole(role);
             userRolesFacade.create(ur);
             role.setName("USER");
             roleFacade.create(role);
-            ur.setCustomer(customer);
+            ur.setUser(user);
             ur.setRole(role);
             userRolesFacade.create(ur);
         }
@@ -76,10 +71,10 @@ public class secure extends HttpServlet {
         request.setCharacterEncoding("UTF8");
         String path = request.getServletPath();
         HttpSession session = request.getSession(false);
-        Customer regUser = null;
+        User regUser = null;
         if (session != null) {
             try {
-                regUser = (Customer) session.getAttribute("regUser");
+                regUser = (User) session.getAttribute("regUser");
             } catch (Exception e) {
                 regUser = null;
             }
@@ -95,7 +90,7 @@ public class secure extends HttpServlet {
                     String login = request.getParameter("login");
                     String password = request.getParameter("password");//по логину найти user
                     request.setAttribute("info", "Нет такого пользователя");
-                    regUser = customerFacade.findByLogin(login);
+                    regUser = userFacade.findByLogin(login);
                     if (regUser == null) {
 
                         request.getRequestDispatcher(PageReturner.getPage("showLogin")).forward(request, response);
@@ -121,11 +116,11 @@ public class secure extends HttpServlet {
                     String roleId = request.getParameter("role");
                     String userId = request.getParameter("user");
                     Role role = roleFacade.find(new Long(roleId));
-                    Customer user = customerFacade.find(new Long(userId));
+                    User user =userFacade.find(new Long(userId));
                     UserRoles ur = new UserRoles(user, role);
                     sl.addRoleToUser(ur);
-                    Map<Customer, String> mapUsers = new HashMap<>();//мар состоит из множества у которых есть уникальные имена Entry 
-                    List<Customer> listUsers = customerFacade.findAll();
+                    Map<User, String> mapUsers = new HashMap<>();//мар состоит из множества у которых есть уникальные имена Entry 
+                    List<User> listUsers = userFacade.findAll();
                     int n = listUsers.size();
                     for (int i = 0; i < n; i++) {
                         mapUsers.put(listUsers.get(i), sl.getRole(listUsers.get(i)));//из листа ридера и передает гетридера
@@ -149,7 +144,7 @@ public class secure extends HttpServlet {
                     }
 
                     mapUsers = new HashMap<>();//мар состоит из множества у которых есть уникальные имена Entry 
-                    listUsers = customerFacade.findAll();
+                    listUsers = userFacade.findAll();
                     n = listUsers.size();
                     for (int i = 0; i < n; i++) {
                         mapUsers.put(listUsers.get(i), sl.getRole(listUsers.get(i)));//из листа ридера и передает гетридера
@@ -168,17 +163,17 @@ public class secure extends HttpServlet {
                     String deleteButton = request.getParameter("deleteButton");
                     userId = request.getParameter("user");
                     roleId = request.getParameter("role");
-                    Customer customer = customerFacade.find(new Long(userId));
+                     user = userFacade.find(new Long(userId));
                     Role roleToUser = roleFacade.find(new Long(roleId));
-                    ur = new UserRoles(customer, roleToUser);
+                    ur = new UserRoles(user, roleToUser);
                     if (setButton != null) {
                         sl.addRoleToUser(ur);
                     }
                     if (setButton != null) {
-                        sl.deleteRoleToUser(ur.getCustomer());
+                        sl.deleteRoleToUser(ur.getUser());
                     }
                     mapUsers = new HashMap<>();
-                    listUsers = customerFacade.findAll();
+                    listUsers = userFacade.findAll();
                     n = listUsers.size();
                     for (int i = 0; i < n; i++) {
                         mapUsers.put(listUsers.get(i), sl.getRole(listUsers.get(i)));
@@ -193,23 +188,46 @@ public class secure extends HttpServlet {
                     break;
             }
         }
-        
 
-}
+    }
+
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
     @Override
-        protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     * @throws ServletException if a servlet-specific error occurs
+     * @throws IOException if an I/O error occurs
+     */
     @Override
-        protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    public void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
     @Override
-        public String getServletInfo() {
+    public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
+
 }

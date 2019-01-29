@@ -52,6 +52,7 @@
                     <li><a href="logout"> Выйти из системы</a></li>
                     <li><a href="newProduct">Добавить продукты</a></li>
                     <li> <a href="newCustomer">Добавить покупателя</a></li>
+                    <li> <a href="editUserRoles">Назначаем роли</a></li>
                 </ul>
             </nav>
         </header>

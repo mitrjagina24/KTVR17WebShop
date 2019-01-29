@@ -6,6 +6,7 @@
 package session;
 
 import entity.Customer;
+import entity.User;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -30,8 +31,8 @@ public class UserRolesFacade extends AbstractFacade<UserRoles> {
     public UserRolesFacade() {
         super(UserRoles.class);
     }
-    public List<UserRoles> findByUser(Customer user) {
-        return em.createQuery("SELECT ur FROM UserRoles ur WHERE ur.customer=:user")
+    public List<UserRoles> findByUser(User user) {
+        return em.createQuery("SELECT ur FROM UserRoles ur WHERE ur.user=:user")
                 .setParameter("user", user)
                 .getResultList();
     }

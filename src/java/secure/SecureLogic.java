@@ -7,6 +7,7 @@ package secure;
 
 import static com.sun.faces.facelets.util.Path.context;
 import entity.Customer;
+import entity.User;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,10 +36,10 @@ private RoleFacade roleFacade;
 
     public void addRoleToUser(UserRoles ur) {
         if (ur.getRole().getName().equals("ADMIN")) {
-            this.deleteRoleToUser(ur.getCustomer());
+            this.deleteRoleToUser(ur.getUser());
             userRolesFacade.create(ur);
             Role addNewRole = roleFacade.findRoleByName("USER");
-            UserRoles addedNewRoles = new UserRoles(ur.getCustomer(), addNewRole);
+            UserRoles addedNewRoles = new UserRoles(ur.getUser(), addNewRole);
             userRolesFacade.create(addedNewRoles);
         } else if  (ur.getRole().getName().equals("USER")){
                 
@@ -47,14 +48,14 @@ private RoleFacade roleFacade;
         
     }
 
-    public void deleteRoleToUser(Customer user) {
+    public void deleteRoleToUser(User user) {
         List<UserRoles> deleteUserRoles = userRolesFacade.findByUser(user);
         int n = deleteUserRoles.size();
         for (int i = 0; i < n; i++) {
             userRolesFacade.remove(deleteUserRoles.get(i));
         }
     }
-    public String getRole(Customer regUser){
+    public String getRole(User regUser){
         if (regUser==null){
           return null;
         }

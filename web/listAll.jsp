@@ -40,11 +40,11 @@
                 </c:forEach>
             </select>
                 <h2>Список покупателей</h2>
-            <select name="selectedCustomer">
-                <c:forEach var="customer" items="${listCustomer}">
-                    <option value="${customer.id}">${customer.name} ${customer.surname} ${customer.money} eur</option>
-                </c:forEach>
-            </select>
+            <!--<select name="selectedCustomer">-->
+                <%--<c:forEach var="customer" items="${listCustomer}">--%>
+                    <!--<option value="${customer.id}">${customer.name} ${customer.surname} ${customer.money} eur</option>-->
+                <%--</c:forEach>--%>
+            <!--</select>-->
                 <input type="text" name="quantity">
                 
                 <button type="submit" name="buyProduct">Купить  продукт</button>

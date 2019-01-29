@@ -6,6 +6,7 @@
 package session;
 
 import entity.Customer;
+import entity.User;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -15,7 +16,7 @@ import javax.persistence.PersistenceContext;
  * @author pupil
  */
 @Stateless
-public class CustomerFacade extends AbstractFacade<Customer> {
+public class UserFacade extends AbstractFacade<User> {
 
     @PersistenceContext(unitName = "KTVR17WebShopPU")
     private EntityManager em;
@@ -25,8 +26,19 @@ public class CustomerFacade extends AbstractFacade<Customer> {
         return em;
     }
 
-    public CustomerFacade() {
-        super(Customer.class);
+    public UserFacade() {
+        super(User.class);
+    }
+
+    public User findByLogin(String login) {
+
+        try {
+            return (User) em.createQuery("SELECT u FROM User u WHERE u.login = :login")
+                    .setParameter("login", login)
+                    .getSingleResult();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
 }

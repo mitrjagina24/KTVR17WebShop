@@ -3,6 +3,7 @@
     Created on : Dec 17, 2018, 3:54:28 PM
     Author     : Anastasia
 --%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <!DOCTYPE html>

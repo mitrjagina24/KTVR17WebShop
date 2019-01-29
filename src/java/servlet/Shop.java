@@ -8,6 +8,7 @@ package servlet;
 import entity.Product;
 import entity.Customer;
 import entity.Purchase;
+import entity.User;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -18,9 +19,11 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import session.ProductFacade;
 import session.CustomerFacade;
 import session.PurchaseFacade;
+import session.UserFacade;
 import util.EncriptPass;
 import util.PageReturner;
 
@@ -39,10 +42,7 @@ import util.PageReturner;
     "/buyProduct",
     "/showBuyProduct",
     "/listBuyProduct",
-    "/deleteProduct",
-
-    
-})
+    "/deleteProduct",})
 
 public class Shop extends HttpServlet {
 
@@ -52,22 +52,25 @@ public class Shop extends HttpServlet {
     CustomerFacade customerFacade;
     @EJB
     PurchaseFacade purchaseFacade;
+    @EJB
+    UserFacade userFacade;
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         request.setCharacterEncoding("UTF8");
-        Product product=null;
+        Product product = null;
         String path = request.getServletPath();
-       if(null != path)switch (path) {
+        if (null != path) {
+            switch (path) {
                 case "/newProduct":
                     request.getRequestDispatcher(PageReturner.getPage("newProduct")).forward(request, response);
                     break;
                 case "/addProduct":
-                    String  name = request.getParameter("name");
+                    String name = request.getParameter("name");
                     String price = request.getParameter("price");
                     String count = request.getParameter("count");
-                     product = new Product( name, new Integer(price), new Integer(count));
+                    product = new Product(name, new Integer(price), new Integer(count));
                     productFacade.create(product);
                     request.setAttribute("product", product);
                     request.getRequestDispatcher(PageReturner.getPage("welcome")).forward(request, response);
@@ -98,20 +101,21 @@ public class Shop extends HttpServlet {
                     EncriptPass ep = new EncriptPass();
                     String salts = ep.createSalts();
                     String encriptPass = ep.setEncriptPass(password1, salts);
-                    Customer customer = new Customer(name, surname,new Integer(money), login, encriptPass, salts);
-
+                    Customer customer = new Customer(name, surname, new Integer(money));
                     customerFacade.create(customer);
+                    User user = new User(login, encriptPass, salts, customer);
+                    userFacade.create(user);
                     request.setAttribute("customer", customer);
-                   // request.setAttribute("product", new Product());
+                    request.setAttribute("product", new Product());
                     request.getRequestDispatcher(PageReturner.getPage("welcome")).forward(request, response);
                     break;
                 }
-                case "/listAll":{
-                   request.setAttribute("listProducts", productFacade.findAll());//findActived(true));
-                   request.setAttribute("listCustomer", customerFacade.findAll());
-                   request.getRequestDispatcher(PageReturner.getPage("buyProduct")).forward(request, response);
-                   break;
-               }
+                case "/listAll": {
+                    request.setAttribute("listProducts", productFacade.findAll());//findActived(true));
+                    request.setAttribute("listCustomer", customerFacade.findAll());
+                    request.getRequestDispatcher(PageReturner.getPage("buyProduct")).forward(request, response);
+                    break;
+                }
                 case "/showCustomer": {
                     List<Customer> listCustomers = customerFacade.findAll();
                     request.setAttribute("listCustomers", listCustomers);
@@ -119,82 +123,95 @@ public class Shop extends HttpServlet {
                     break;
                 }
 
-                    case "/purchase":{
-                   request.setAttribute("listProducts", productFacade.findAll());
-                   request.setAttribute("listCustomers", customerFacade.findAll());
-                   request.getRequestDispatcher(PageReturner.getPage("listBuyProduct")).forward(request, response);
-                   break;
-               }
+                case "/purchase": {
+                    request.setAttribute("listProducts", productFacade.findAll());
+                    request.setAttribute("listCustomers", customerFacade.findAll());
+                    request.getRequestDispatcher(PageReturner.getPage("listBuyProduct")).forward(request, response);
+                    break;
+                }
                 case "/showBuyProduct": {
                     List<Purchase> buyProducts = purchaseFacade.findAll();
                     request.setAttribute("buyProducts", buyProducts);
                     request.getRequestDispatcher(PageReturner.getPage("listBuyProduct")).forward(request, response);
                     break;
                 }
-                case "/buyProduct":{
-                   String selectedProduct = request.getParameter("selectedProduct");
-                   String selectedCustomer = request.getParameter("selectedCustomer");
-                   String quantity = request.getParameter("quantity");
-                   product = productFacade.find(new Long(selectedProduct));
-                   Customer customer = customerFacade.find(new Long(selectedCustomer));
-                   
-                   Calendar c = new GregorianCalendar();
-                           
+                case "/buyProduct": {
+                    String selectedProduct = request.getParameter("selectedProduct");
+                    String selectedCustomer = request.getParameter("selectedCustomer");
+                    String quantity = request.getParameter("quantity");
+                    product = productFacade.find(new Long(selectedProduct));
+                    HttpSession session = request.getSession(false);
+                    User regUser = null;
+                    Customer customer=null;
+                    
+                    if (session != null) {
+                        try {
+                            regUser = (User) session.getAttribute("regUser");
+                            customer= regUser.getCustomer();
+                        } catch (Exception e) {
+                            customer = null;
+                             request.setAttribute("info", "Вы должны войти!");
+                            request.getRequestDispatcher("/listBuyProduct.jsp").forward(request, response);
+                            break;
+                        }
+                    }
+                    
+
+                    Calendar c = new GregorianCalendar();
+
 //                  Если      количество продукта  минус quantity больше 0  то проверяем кол-во денег у пользователя 
 //                  Если кол-во денег у пользователя больше чем кол-во пользователя минус quantity * продукт price больше или равно 0 то попроизводим прокупку и списание 
-                    
                     if ((customer.getMoney() - (new Integer(quantity) * product.getPrice())) >= 0) {
-                        if(product.getCount()-new Integer(quantity)>=0){
+                        if (product.getCount() - new Integer(quantity) >= 0) {
                             product.setCount(product.getCount() - new Integer(quantity));
-                            customer.setMoney(customer.getMoney() - new Integer(quantity)*product.getPrice());
-                            Purchase purchase = new Purchase (product, customer, c.getTime(), new Integer(quantity));
+                            productFacade.edit(product);
+                            customer.setMoney(customer.getMoney() - new Integer(quantity) * product.getPrice());
+                            customerFacade.edit(customer);
+                            Purchase purchase = new Purchase(product, customer, c.getTime(), new Integer(quantity));
                             purchaseFacade.create(purchase);
-                             List<Purchase> buyProducts = purchaseFacade.findAll();
-                             request.setAttribute("buyProducts", buyProducts);
-                             request.getRequestDispatcher("/listBuyProduct.jsp").forward(request, response);
-                             break;
-                        }else {
+                            List<Purchase> buyProducts = purchaseFacade.findAll();
+                            request.setAttribute("buyProducts", buyProducts);
+                            request.getRequestDispatcher("/listBuyProduct.jsp").forward(request, response);
+                            break;
+                        } else {
                             List<Purchase> buyProducts = purchaseFacade.findAll();
                             request.setAttribute("buyProducts", buyProducts);
                             request.setAttribute("info", "Не хватает товара!");
-                            request.getRequestDispatcher("/listBuyProduct.jsp").forward(request, response); 
+                            request.getRequestDispatcher("/listBuyProduct.jsp").forward(request, response);
                             break;
                         }
                     } else {
                         List<Purchase> buyProducts = purchaseFacade.findAll();
-                      request.setAttribute("buyProducts", buyProducts);
-                      request.setAttribute("info", "Не хватает денег!");
-                      request.getRequestDispatcher("/listBuyProduct.jsp").forward(request, response); 
-                      break;
-                    }      
+                        request.setAttribute("buyProducts", buyProducts);
+                        request.setAttribute("info", "Не хватает денег!");
+                        request.getRequestDispatcher("/listBuyProduct.jsp").forward(request, response);
+                        break;
+                    }
                 }
-                
 
                 default:
                     request.getRequestDispatcher(PageReturner.getPage("welcome")).forward(request, response);
                     break;
-            }
 
+            }
         }
 
-@Override
-        protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
     }
 
- 
-
-
-
     @Override
-        protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
     @Override
-        public String getServletInfo() {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        processRequest(request, response);
+    }
+
+    @Override
+    public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
 

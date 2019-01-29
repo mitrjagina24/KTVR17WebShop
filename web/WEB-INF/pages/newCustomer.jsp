@@ -47,6 +47,9 @@
                 <br>
                 <br><br>
                 <input type="submit" value="Добавить">
+                
+              
         </div>
+        
     </body>
     </html>
